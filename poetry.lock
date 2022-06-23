@@ -1,0 +1,99 @@
+[[package]]
+name = "markdown"
+version = "3.3.7"
+description = "Python implementation of Markdown."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+testing = ["coverage", "pyyaml"]
+
+[[package]]
+name = "pyenchant"
+version = "3.2.2"
+description = "Python bindings for the Enchant spellchecking system"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
+name = "pyside6"
+version = "6.3.1"
+description = "Python bindings for the Qt cross-platform application and UI framework"
+category = "main"
+optional = false
+python-versions = "<3.11,>=3.6"
+
+[package.dependencies]
+PySide6-Addons = "6.3.1"
+PySide6-Essentials = "6.3.1"
+shiboken6 = "6.3.1"
+
+[[package]]
+name = "pyside6-addons"
+version = "6.3.1"
+description = "Python bindings for the Qt cross-platform application and UI framework (Addons)"
+category = "main"
+optional = false
+python-versions = "<3.11,>=3.6"
+
+[package.dependencies]
+PySide6-Essentials = "6.3.1"
+shiboken6 = "6.3.1"
+
+[[package]]
+name = "pyside6-essentials"
+version = "6.3.1"
+description = "Python bindings for the Qt cross-platform application and UI framework (Essentials)"
+category = "main"
+optional = false
+python-versions = "<3.11,>=3.6"
+
+[package.dependencies]
+shiboken6 = "6.3.1"
+
+[[package]]
+name = "shiboken6"
+version = "6.3.1"
+description = "Python/C++ bindings helper module"
+category = "main"
+optional = false
+python-versions = "<3.11,>=3.6"
+
+[metadata]
+lock-version = "1.1"
+python-versions = "3.10"
+content-hash = "9c7dfda3ebefceb289e34d5ca44e9516e243221f19eef250d3d1d67294adac85"
+
+[metadata.files]
+markdown = [
+    {file = "Markdown-3.3.7-py3-none-any.whl", hash = "sha256:f5da449a6e1c989a4cea2631aa8ee67caa5a2ef855d551c88f9e309f4634c621"},
+    {file = "Markdown-3.3.7.tar.gz", hash = "sha256:cbb516f16218e643d8e0a95b309f77eb118cb138d39a4f27851e6a63581db874"},
+]
+pyenchant = [
+    {file = "pyenchant-3.2.2-py3-none-any.whl", hash = "sha256:5facc821ece957208a81423af7d6ec7810dad29697cb0d77aae81e4e11c8e5a6"},
+    {file = "pyenchant-3.2.2-py3-none-win32.whl", hash = "sha256:5a636832987eaf26efe971968f4d1b78e81f62bca2bde0a9da210c7de43c3bce"},
+    {file = "pyenchant-3.2.2-py3-none-win_amd64.whl", hash = "sha256:6153f521852e23a5add923dbacfbf4bebbb8d70c4e4bad609a8e0f9faeb915d1"},
+    {file = "pyenchant-3.2.2.tar.gz", hash = "sha256:1cf830c6614362a78aab78d50eaf7c6c93831369c52e1bb64ffae1df0341e637"},
+]
+pyside6 = [
+    {file = "PySide6-6.3.1-cp36-abi3-macosx_10_9_universal2.whl", hash = "sha256:58b824cb41d549a149a17786326f79a2fa46a1ce94e06397e78ea5707757b052"},
+    {file = "PySide6-6.3.1-cp36-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:bc749968d641af1c516b6b0e00264bffea9cfc2d56dc04766f36e1a313e93a3a"},
+    {file = "PySide6-6.3.1-cp36-abi3-win_amd64.whl", hash = "sha256:947185379c181d5e51b7b6bf2df8d8127c675ea57604d41265c67444d226db26"},
+]
+pyside6-addons = [
+    {file = "PySide6_Addons-6.3.1-cp36-abi3-macosx_10_9_universal2.whl", hash = "sha256:7a6bb180e41a4c599aa0e93d11e60570d0ebc79c197afccd9c227566dad5d5ef"},
+    {file = "PySide6_Addons-6.3.1-cp36-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:14f4171b15dbdd7d120dc125c84f2eca53bc197182295bfdfdb3bb95b58a46c7"},
+    {file = "PySide6_Addons-6.3.1-cp36-abi3-win_amd64.whl", hash = "sha256:9a933fac75c85bea3a9e31b24926e06b1afebae23cd164f10f2001999ea2692c"},
+]
+pyside6-essentials = [
+    {file = "PySide6_Essentials-6.3.1-cp36-abi3-macosx_10_9_universal2.whl", hash = "sha256:55696693325a2de7bf5b56274b534f191032d218d61a948baa95933f6e642e59"},
+    {file = "PySide6_Essentials-6.3.1-cp36-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:e27962beb2cc45fe13a1a1c24a454c3c3c3c3082c4a84bc5dcf6b306979ba013"},
+    {file = "PySide6_Essentials-6.3.1-cp36-abi3-win_amd64.whl", hash = "sha256:fa825c5396a5dfedf59635e904239187e2f2225c7f65917d4e973062c9a6b916"},
+]
+shiboken6 = [
+    {file = "shiboken6-6.3.1-cp36-abi3-macosx_10_9_universal2.whl", hash = "sha256:6393aa330101b098631a88dfb99b6b46794046c7f63b5c1ac93ae2fcef4773ff"},
+    {file = "shiboken6-6.3.1-cp36-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:aad9aa8e7ecd3c889cc789e41abf3990101126b5b02edfcf87f1ef331c9dc45a"},
+    {file = "shiboken6-6.3.1-cp36-abi3-win_amd64.whl", hash = "sha256:cb9cf4ad858e59237642bf6b8be1fe6f19cb090799ff00e4c2643768d73e8ebe"},
+]
