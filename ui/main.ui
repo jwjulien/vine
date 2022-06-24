@@ -127,8 +127,22 @@
     </widget>
     <addaction name="menuHTML"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <widget class="QMenu" name="menuHeading_Format">
+     <property name="title">
+      <string>Heading Format</string>
+     </property>
+     <addaction name="actionHeadingsHashes"/>
+     <addaction name="actionHeadingsBars"/>
+    </widget>
+    <addaction name="menuHeading_Format"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuExport"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -246,6 +260,22 @@
   <action name="actionExportHtmlWhite">
    <property name="text">
     <string>White</string>
+   </property>
+  </action>
+  <action name="actionHeadingsHashes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Hashes</string>
+   </property>
+  </action>
+  <action name="actionHeadingsBars">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Bars</string>
    </property>
   </action>
  </widget>

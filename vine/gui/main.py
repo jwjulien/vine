@@ -31,6 +31,7 @@ from PySide6 import QtCore, QtGui, QtWidgets, QtPrintSupport
 from vine.gui.base.main import Ui_MainWindow
 from vine.model.article import Article
 from vine.model.document import Document
+from vine.settings import HeadingFormat, Settings
 
 
 
@@ -52,6 +53,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model = Document()
         self.ui.tree.selectionModel().selectionChanged.connect(self.selected)
 
+        # TODO: Persist these settings to a user's config file.
+        self.settings = Settings(headings=HeadingFormat.BARS)
+        self.show_settings()
+
         self.ui.popmenu = QtWidgets.QMenu(self)
         self.ui.popmenu_insert = QtGui.QAction('Insert', self)
         self.ui.popmenu.addAction(self.ui.popmenu_insert)
@@ -67,9 +72,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionSave_As.triggered.connect(self.save_as)
         self.ui.actionSave_a_Copy.triggered.connect(self.save_copy)
         self.ui.actionExit.triggered.connect(self.close)
-        # self.ui.actionCut.triggered.connect(self.cut)
-        # self.ui.actionCopy.triggered.connect(self.copy)
-        # self.ui.actionPaste.triggered.connect(self.paste)
+        self.ui.actionHeadingsHashes.triggered.connect(lambda: self.headings(HeadingFormat.HASHES))
+        self.ui.actionHeadingsBars.triggered.connect(lambda: self.headings(HeadingFormat.BARS))
         self.ui.actionInsert.triggered.connect(self.insert)
         self.ui.actionDelete.triggered.connect(self.delete)
         self.ui.actionAbout.triggered.connect(self.about)
@@ -102,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow):
             has cancelled and the caller should cease what it was doing.
         """
         # No unsaved changes, nothing to warn about.
-        if not self.model.dirty():
+        if not self.model.dirty(self.settings):
             return True
 
         # Changes exist, lets prompt the user for an action.
@@ -195,7 +199,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # filename now.
             return self.save_as()
 
-        self.model.dump(self.filename)
+        self.model.dump(self.filename, settings=self.settings)
         self.changed()
         return True
 
@@ -257,6 +261,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionDelete.setEnabled(True)
         index = selection.indexes()[0]
         self.article = index.data(QtCore.Qt.UserRole)
+        self.ui.popmenu_insert.setEnabled(self.article.level < 6)
+        self.ui.actionInsert.setEnabled(self.article.level < 6)
         self.ui.editor.blockSignals(True)
         self.ui.editor.setPlainText(self.article.body)
         self.ui.editor.blockSignals(False)
@@ -280,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow):
 # ----------------------------------------------------------------------------------------------------------------------
     def changed(self):
         """The document has changed - Update the window title to reflect the current state."""
-        dirty = '*' if self.model.dirty() else ''
+        dirty = '*' if self.model.dirty(self.settings) else ''
         filename = os.path.basename(self.filename) if self.filename else 'Untitled'
         version = importlib.metadata.version('vine')
         self.setWindowTitle(f'{dirty}{filename} - Vine Markdown Editor {version}')
@@ -331,6 +337,8 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             selected_item = selection[-1]
             selected_article: Article = selected_item.data(0, QtCore.Qt.UserRole)
+            if selected_article.level >= 6:
+                return
             new_article.parent = selected_article
             selected_article.children.append(new_article)
             selected_item.addChild(new_item)
@@ -363,6 +371,7 @@ class MainWindow(QtWidgets.QMainWindow):
             browser.setHtml(self.model.to_html())
             browser.print_(dialog.printer())
 
+
 # ----------------------------------------------------------------------------------------------------------------------
     def preview(self):
         """Preview the HTML before printing."""
@@ -371,6 +380,18 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog = QtPrintSupport.QPrintPreviewDialog()
         dialog.paintRequested.connect(browser.print_)
         dialog.exec()
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def show_settings(self) -> None:
+        self.ui.actionHeadingsHashes.setChecked(self.settings.headings == HeadingFormat.HASHES)
+        self.ui.actionHeadingsBars.setChecked(self.settings.headings == HeadingFormat.BARS)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def headings(self, format: HeadingFormat) -> None:
+        self.settings.headings = HeadingFormat(format)
+        self.show_settings()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -385,7 +406,7 @@ class MainWindow(QtWidgets.QMainWindow):
             def script(filename):
                 with open(os.path.join(assets, 'js', filename), 'r', encoding='utf-8') as handle:
                     return f'<script types="text/javascript">{handle.read()}</script>'
-            document = self.model.to_html()
+            document = self.model.to_html(self.settings)
             html = f"""<html>
     <head>
         {style('main.min.css')}

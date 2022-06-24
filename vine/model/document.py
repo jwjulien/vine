@@ -28,6 +28,7 @@ from PySide6 import QtCore
 from markdown import markdown
 
 from vine.model.article import Article
+from vine.settings import HeadingFormat, Settings
 
 
 
@@ -73,47 +74,69 @@ class Document:
                 previous_level -= 1
             parent = parents[-1]
             title, body = content.split('\n', 1)
-            child = Article(title=title.strip(), body=body.strip(), parent=parent)
+            child = Article(title=title.rstrip('#').strip(), body=body.strip(), parent=parent)
             parent.children.append(child)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-    def dump(self, filename: str) -> None:
+    def dump(self, filename: str, settings: Settings) -> None:
         """Write the contents of this model to the provided filename.
 
         Arguments:
             filename: The path and name of the file to which the contents of this Document are to be dumped.
+            headings: The format to use for the headings in the output file.
         """
-        document = self.dumps()
+        document = self.dumps(settings)
         with open(filename, 'w', encoding='utf-8') as handle:
             handle.write(document)
         self._cached = document
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-    def dumps(self) -> str:
+    def dumps(self, settings: Settings) -> str:
         """Return the contents of this document as a sting."""
-        def dump_node(root: Article, level: int = 1) -> str:
+        def dump_node(root: Article) -> str:
             text = ''
+
             for article in root.children:
-                text += max(2, 7 - level) * '\n'
-                text += ('#' * level) + f' {article.title}\n'
+                # Prepend newlines BEFORE this section.
+                text += max(2, 7 - article.level) * '\n'
+
+                # Generate a heading based upon the specified heading format.
+                if settings.headings == HeadingFormat.HASHES or article.level > 2:
+                    text += ('#' * article.level) + ' '
+                text += article.title.strip()
+                if settings.headings == HeadingFormat.BARS:
+                    if article.level == 1:
+                        text += '\n' + ('=' * 120)
+                    elif article.level == 2:
+                        text += '\n' + ('-' * 120)
+                    elif article.level == 3:
+                        text += ' ' + ('#' * (120 - len(article.title.strip()) - article.level - 2))
+                    elif article.level == 4:
+                        text += ' ' + ('#' * 4)
+                text += '\n'
+
+                # Append the body text.
                 text += article.body.rstrip('\n')
-                text += dump_node(article, level + 1)
+
+                # Recurse into children, when applicable (returns nothing when this is a leaf node).
+                text += dump_node(article)
+
             return text
 
         return dump_node(self.root).strip('\n')
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-    def dirty(self) -> bool:
-        current = self.dumps()
+    def dirty(self, settings: Settings) -> bool:
+        current = self.dumps(settings)
         return current != self._cached
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-    def to_html(self) -> str:
-        text = self.dumps()
+    def to_html(self, settings: Settings) -> str:
+        text = self.dumps(settings)
         extensions = [
             'admonition',
             'codehilite',
