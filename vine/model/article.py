@@ -40,7 +40,7 @@ class Article:
     def __init__(self, title: str, body: str, parent: 'Article' = None):
         self.title = title
         self.body = body
-        self.parent_article: 'Article' = parent
+        self.parent: 'Article' = parent
         self.children: List['Article'] = []
 
     def clear(self) -> None:
@@ -57,47 +57,10 @@ class Article:
     def child_count(self) -> int:
         return len(self.children)
 
-    def child_number(self) -> int:
-        if self.parent_article:
-            return self.parent_article.children.index(self)
+    def sibling_number(self) -> int:
+        if self.parent:
+            return self.parent.children.index(self)
         return 0
-
-    def column_count(self) -> int:
-        return 2
-
-    def data(self, column: int) -> str:
-        if column == 0:
-            return self.title
-        elif column == 1:
-            return self.body
-        return None
-
-    def insert_children(self, position: int, count: int) -> bool:
-        if position < 0 or position > len(self.children):
-            return False
-        for _ in range(count):
-            item = Article('', '', self)
-            self.children.insert(position, item)
-        return True
-
-    def parent(self):
-        return self.parent_article
-
-    def remove_children(self, position: int, count: int) -> bool:
-        if position < 0 or position + count > len(self.children):
-            return False
-        for _ in range(count):
-            self.children.pop(position)
-        return True
-
-    def set_data(self, column: int, value: any) -> bool:
-        if column == 0:
-            self.title = value
-        elif column == 1:
-            self.body = value
-        else:
-            return False
-        return True
 
     def __repr__(self) -> str:
         return f'<Article at 0x{id(self):x} title="{self.title}">'

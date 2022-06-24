@@ -24,10 +24,12 @@
 # ----------------------------------------------------------------------------------------------------------------------
 import importlib.metadata
 import os
+from typing import List
 
 from PySide6 import QtCore, QtGui, QtWidgets, QtPrintSupport
 
 from vine.gui.base.main import Ui_MainWindow
+from vine.model.article import Article
 from vine.model.document import Document
 
 
@@ -48,28 +50,38 @@ class MainWindow(QtWidgets.QMainWindow):
         self.article = None
 
         self.model = Document()
-        self.ui.tree.setModel(self.model)
-        # self.ui.tree.hideColumn(1)
-
         self.ui.tree.selectionModel().selectionChanged.connect(self.selected)
+
+        self.ui.popmenu = QtWidgets.QMenu(self)
+        self.ui.popmenu_insert = QtGui.QAction('Insert', self)
+        self.ui.popmenu.addAction(self.ui.popmenu_insert)
+        self.ui.popmenu_delete = QtGui.QAction('Delete', self)
+        self.ui.popmenu_delete.setEnabled(False)
+        self.ui.popmenu.addAction(self.ui.popmenu_delete)
+        self.ui.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.tree.customContextMenuRequested.connect(self.context)
 
         self.ui.actionNew.triggered.connect(self.new)
         self.ui.actionOpen.triggered.connect(self.open)
         self.ui.actionSave.triggered.connect(self.save)
         self.ui.actionSave_As.triggered.connect(self.save_as)
         self.ui.actionSave_a_Copy.triggered.connect(self.save_copy)
-        # self.ui.actionExit.triggered.connect(self.exit)
+        self.ui.actionExit.triggered.connect(self.close)
         # self.ui.actionCut.triggered.connect(self.cut)
         # self.ui.actionCopy.triggered.connect(self.copy)
         # self.ui.actionPaste.triggered.connect(self.paste)
-        # self.ui.actionAbout.triggered.connect(self.about)
-        # self.ui.actionContents.triggered.connect(self.contents)
+        self.ui.actionInsert.triggered.connect(self.insert)
+        self.ui.actionDelete.triggered.connect(self.delete)
+        self.ui.actionAbout.triggered.connect(self.about)
         self.ui.actionPrint.triggered.connect(self.on_print)
         self.ui.actionPreview.triggered.connect(self.preview)
-        self.ui.actionExportHtml.triggered.connect(self.export_html)
+        self.ui.actionExportHtmlWhite.triggered.connect(lambda: self.export_html('white'))
+        self.ui.actionExportHtmlSlate.triggered.connect(lambda: self.export_html('slate'))
         self.ui.editor.textChanged.connect(self.body_changed)
-        self.model.dataChanged.connect(self.changed)
-
+        self.ui.tree.dropEvent = self.dropped
+        self.ui.tree.itemChanged.connect(self.title_changed)
+        self.ui.popmenu_insert.triggered.connect(self.insert)
+        self.ui.popmenu_delete.triggered.connect(self.delete)
         self.changed()
 
 
@@ -115,6 +127,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.filename = None
             self.model.clear()
             self.article = None
+            self.ui.tree.clear()
             self.ui.editor.clear()
             self.ui.editor.setEnabled(False)
             return True
@@ -135,11 +148,37 @@ class MainWindow(QtWidgets.QMainWindow):
         if filename:
             self.filename = filename
             self.model.load(self.filename)
+            self._render_tree()
+            self.ui.tree.setSelection(QtCore.QRect(0, 0, 1, 1), QtCore.QItemSelectionModel.ClearAndSelect)
+            self.ui.tree.expandAll()
 
-            if self.model.root.children:
-                model = self.ui.tree.selectionModel()
-                index = self.model.createIndex(0, 0, self.model.root.children[0])
-                model.select(index, QtCore.QItemSelectionModel.ClearAndSelect)
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def _make_item(self, article: Article) -> QtWidgets.QTreeWidgetItem:
+        item = QtWidgets.QTreeWidgetItem()
+        item.setText(0, article.title)
+        item.setData(0, QtCore.Qt.UserRole, article)
+        flags = item.flags()
+        flags |= QtCore.Qt.ItemIsEditable
+        item.setFlags(flags)
+        return item
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def _render_tree(self):
+        """Helper to re-render the article tree whenever the model changes."""
+        def add_node(article: Article) -> List[QtWidgets.QTreeWidgetItem]:
+            roots = []
+            for child in article.children:
+                item = self._make_item(child)
+                item.addChildren(add_node(child))
+                roots.append(item)
+            return roots
+
+        roots = add_node(self.model.root)
+        self.ui.tree.clear()
+        self.ui.tree.addTopLevelItems(roots)
+        self.changed()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -157,6 +196,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return self.save_as()
 
         self.model.dump(self.filename)
+        self.changed()
         return True
 
 
@@ -197,16 +237,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+    def about(self):
+        title = 'About Vine Markdown Editor'
+        description = importlib.metadata.metadata('vine')['Summary'] + '\n\n'
+        description += 'Author: ' + importlib.metadata.metadata('vine')['Author']
+        description += ' <' + importlib.metadata.metadata('vine')['Author-email'] + '>\n'
+        description += 'Copyright: (c) 2022 ' + importlib.metadata.metadata('vine')['Author']
+        QtWidgets.QMessageBox.about(self, title, description)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
     def selected(self, selection: QtCore.QItemSelection) -> None:
         """User has selected a new title in the tree - load the corresponding body into the editor."""
         if len(selection) != 1:
+            self.ui.popmenu_delete.setEnabled(False)
+            self.ui.actionDelete.setEnabled(False)
             return
+        self.ui.popmenu_delete.setEnabled(True)
+        self.ui.actionDelete.setEnabled(True)
         index = selection.indexes()[0]
-        self.article = self.model.get_item(index)
+        self.article = index.data(QtCore.Qt.UserRole)
         self.ui.editor.blockSignals(True)
         self.ui.editor.setPlainText(self.article.body)
         self.ui.editor.blockSignals(False)
         self.ui.editor.setEnabled(True)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def title_changed(self, item: QtWidgets.QTreeWidgetItem) -> None:
+        article = item.data(0, QtCore.Qt.UserRole)
+        article.title = item.text(0)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -224,6 +284,74 @@ class MainWindow(QtWidgets.QMainWindow):
         filename = os.path.basename(self.filename) if self.filename else 'Untitled'
         version = importlib.metadata.version('vine')
         self.setWindowTitle(f'{dirty}{filename} - Vine Markdown Editor {version}')
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def dropped(self, event):
+        """Called when an article in the tree is "dropped" from a resort event.
+
+        Because the QTreeViewWidget does not automatically handle sorting updates for use we must hook this event and
+        extract the new tree structure from the UI upon a drop.
+        """
+        # Invoke the original parent function we are overriding.
+        QtWidgets.QTreeWidget.dropEvent(self.ui.tree, event)
+
+        def recurse(item: QtWidgets.QTreeWidgetItem) -> List[Article]:
+            articles = []
+            for idx in range(item.childCount()):
+                child = item.child(idx)
+                article = child.data(0, QtCore.Qt.UserRole)
+                article.children = recurse(child)
+                articles.append(article)
+            return articles
+
+        # Reload the document structure from the tree.
+        self.model.root.children = []
+        for idx in range(self.ui.tree.topLevelItemCount()):
+            item = self.ui.tree.topLevelItem(idx)
+            article = item.data(0, QtCore.Qt.UserRole)
+            article.children = recurse(item)
+            self.model.root.children.append(article)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def context(self, point: QtCore.QPoint):
+        self.ui.popmenu.exec(self.ui.tree.mapToGlobal(point))
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def insert(self):
+        selection = self.ui.tree.selectedItems()
+        new_article = Article('', '')
+        new_item = self._make_item(new_article)
+        if not selection:
+            new_article.parent = self.model.root
+            self.model.root.children.append(new_article)
+            self.ui.tree.addTopLevelItem(new_item)
+        else:
+            selected_item = selection[-1]
+            selected_article: Article = selected_item.data(0, QtCore.Qt.UserRole)
+            new_article.parent = selected_article
+            selected_article.children.append(new_article)
+            selected_item.addChild(new_item)
+            selected_item.setExpanded(True)
+        self.ui.tree.editItem(new_item, column=0)
+        self.ui.tree.clearSelection()
+        new_item.setSelected(True)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+    def delete(self):
+        selection = self.ui.tree.selectedItems()
+        for item in selection:
+            article: Article = item.data(0, QtCore.Qt.UserRole)
+            article.parent.children.pop(article.sibling_number())
+            parent = item.parent()
+            if parent:
+                parent.removeChild(item)
+            else:
+                self.ui.tree.takeTopLevelItem(self.ui.tree.indexOfTopLevelItem(item))
+        self.ui.tree.clearSelection()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -246,7 +374,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-    def export_html(self):
+    def export_html(self, theme: str):
         """Export the current contents of the document to an HTML file."""
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Export HTML', filter='HTML (*.html *.htm)')
         if filename:
@@ -264,7 +392,7 @@ class MainWindow(QtWidgets.QMainWindow):
         {style('palette.min.css')}
         {script('palette.min.js')}
     </head>
-    <body dir="ltr" data-md-color-scheme="slate">
+    <body dir="ltr" data-md-color-scheme="{theme}">
         <div class="md-container">
             <main class="md-main">
                 <div class="md-main__inner md-grid">

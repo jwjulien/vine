@@ -238,15 +238,18 @@ class MarkdownSpellTextEdit(QtWidgets.QPlainTextEdit):
                         cursor.movePosition(QtGui.QTextCursor.StartOfLine)
                         self.setTextCursor(cursor)
 
-                    self.qApp.clipboard().setText(text)
+                    QtGui.QGuiApplication.clipboard().setText(text)
                     return True
 
             elif event == QtGui.QKeySequence.Paste:
-                if self.qApp.clipboard().ownsClipboard() and QtCore.QRegExp("[^\n]*\n$").exactMatch(self.qApp.clipboard().text()):
-                    cursor = self.textCursor()
-                    if not cursor.hasSelection():
-                        cursor.movePosition(QtGui.QTextCursor.StartOfLine)
-                        self.setTextCursor(cursor)
+                if QtGui.QGuiApplication.clipboard().ownsClipboard():
+                    # Any clip that ends with a single newline - paste it at the beginning of this line.
+                    text = QtGui.QGuiApplication.clipboard().text()
+                    if QtCore.QRegularExpression("[^\n]*\n$").match(text).hasMatch():
+                        cursor = self.textCursor()
+                        if not cursor.hasSelection():
+                            cursor.movePosition(QtGui.QTextCursor.StartOfLine)
+                            self.setTextCursor(cursor)
 
             elif event.key() == QtCore.Qt.Key_Down and bool(event.modifiers() & QtCore.Qt.ControlModifier) and bool(event.modifiers() & QtCore.Qt.AltModifier):
                 # Duplicate text with `Ctrl + Alt + Down`.
@@ -349,7 +352,7 @@ class MarkdownSpellTextEdit(QtWidgets.QPlainTextEdit):
 
         # Auto-completion for ``` pair.
         if opening == '`':
-            if QtCore.QRegExp(r'[&`]*``').exactMatch(text):
+            if QtCore.QRegularExpression(r'[&`]*``').match(text).hasMatch():
                 cursor.insertText(opening)
                 cursor.insertText(opening)
                 subtract = 3

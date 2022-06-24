@@ -35,9 +35,7 @@ from vine.model.article import Article
 # ======================================================================================================================
 # Document Class
 # ----------------------------------------------------------------------------------------------------------------------
-class Document(QtCore.QAbstractItemModel):
-
-    dataChanged = QtCore.Signal(QtCore.QModelIndex, QtCore.QModelIndex, object)
+class Document:
 
     def __init__(self):
         super().__init__()
@@ -48,8 +46,6 @@ class Document(QtCore.QAbstractItemModel):
 # ----------------------------------------------------------------------------------------------------------------------
     def load(self, filename: str):
         """Load a document from file."""
-        self.beginResetModel()
-
         with open(filename, 'r', encoding='utf-8') as handle:
             document = handle.read()
 
@@ -76,16 +72,9 @@ class Document(QtCore.QAbstractItemModel):
                 parents.pop()
                 previous_level -= 1
             parent = parents[-1]
-            parent.insert_children(parent.child_count(), 1)
-            child = parent.last_child()
             title, body = content.split('\n', 1)
-            child.set_data(0, title.strip())
-            child.set_data(1, body.strip())
-
-        self.endResetModel()
-
-        index = self.createIndex(0, 0)
-        self.dataChanged.emit(index, index, [QtCore.Qt.DisplayRole])
+            child = Article(title=title.strip(), body=body.strip(), parent=parent)
+            parent.children.append(child)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -99,9 +88,6 @@ class Document(QtCore.QAbstractItemModel):
         with open(filename, 'w', encoding='utf-8') as handle:
             handle.write(document)
         self._cached = document
-
-        index = self.createIndex(0, 0)
-        self.dataChanged.emit(index, index, [QtCore.Qt.DisplayRole])
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -139,149 +125,8 @@ class Document(QtCore.QAbstractItemModel):
 
 # ----------------------------------------------------------------------------------------------------------------------
     def clear(self):
-        self.beginResetModel()
         self.root.clear()
         self._cached = ''
-        self.endResetModel()
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def get_item(self, index: QtCore.QModelIndex = QtCore.QModelIndex()) -> Article:
-        if index.isValid():
-            item: Article = index.internalPointer()
-            if item:
-                return item
-        return self.root
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def index(self, row: int, column: int, parent: QtCore.QModelIndex) -> QtCore.QModelIndex:
-        if parent.isValid() and parent.column() != 0:
-            return QtCore.QModelIndex()
-
-        parent_item: Article = self.get_item(parent)
-        if not parent_item:
-            return QtCore.QModelIndex()
-
-        child_item: Article = parent_item.child(row)
-        if child_item:
-            return self.createIndex(row, column, child_item)
-        return QtCore.QModelIndex()
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def parent(self, index: QtCore.QModelIndex = QtCore.QModelIndex()) -> QtCore.QModelIndex:
-        if not index.isValid():
-            return QtCore.QModelIndex()
-
-        child_item: Article = self.get_item(index)
-        if child_item:
-            parent_item: Article = child_item.parent()
-        else:
-            parent_item = None
-
-        if parent_item == self.root or not parent_item:
-            return QtCore.QModelIndex()
-
-        return self.createIndex(parent_item.child_number(), 0, parent_item)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def data(self, index: QtCore.QModelIndex, role: int = QtCore.Qt.DisplayRole) -> any:
-        if not index.isValid():
-            return None
-
-        if role != QtCore.Qt.DisplayRole and role != QtCore.Qt.EditRole:
-            return None
-
-        article: Article = self.get_item(index)
-        return article.data(index.column())
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def setData(self, index: QtCore.QModelIndex, value: any, role: int = QtCore.Qt.EditRole) -> bool:
-        """Sets the role data for the item at the specified index to the provided value.
-
-        Arguments:
-            index: The location of the data being updated.
-            value: The value of the data at the location and role.
-            role: Specifies the role of the provided data.
-
-        Returns:
-            True when the update was successful.
-        """
-        if role not in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:
-            return False
-
-        item: Article = self.get_item(index)
-        result: bool = item.set_data(index.column(), value)
-
-        if result:
-            self.dataChanged.emit(index, index, [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole])
-
-        return result
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
-        """Returns the item flags for the given index.
-
-        Specifically this method adds ItemEditable to those provided by the base class.
-        """
-        if not index.isValid():
-            return QtCore.Qt.NoItemFlags
-        flags = super().flags(index)
-        flags |= QtCore.Qt.ItemIsEditable
-        flags |= QtCore.Qt.ItemIsDragEnabled
-        flags |= QtCore.Qt.ItemIsDropEnabled
-        return flags
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def supportedDropActions(self):
-        return QtCore.Qt.MoveAction
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def insertRows(self, position: int, rows: int, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> bool:
-        parent_item: Article = self.get_item(parent)
-        if not parent_item:
-            return False
-
-        self.beginInsertRows(parent, position, position + rows - 1)
-        success: bool = parent_item.insert_children(position, rows)
-        self.endInsertRows()
-
-        return success
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def removeRows(self, position: int, rows: int, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> bool:
-        parent_item: Article = self.get_item(parent)
-        if not parent_item:
-            return False
-
-        self.beginRemoveRows(parent, position, position + rows - 1)
-        success: bool = parent_item.remove_children(position, rows)
-        self.endRemoveRows()
-
-        return success
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def rowCount(self, parent: QtCore.QModelIndex) -> int:
-        if parent.isValid() and parent.column() > 0:
-            return 0
-
-        parent_item: Article = self.get_item(parent)
-        if not parent_item:
-            return 0
-        return parent_item.child_count()
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-    def columnCount(self, _parent: QtCore.QModelIndex) -> int:
-        return 2
 
 
 # ----------------------------------------------------------------------------------------------------------------------

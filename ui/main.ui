@@ -20,7 +20,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeView" name="tree">
+      <widget class="QTreeWidget" name="tree">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>2</horstretch>
@@ -42,12 +42,14 @@
        <property name="indentation">
         <number>15</number>
        </property>
-       <property name="sortingEnabled">
-        <bool>true</bool>
-       </property>
        <property name="headerHidden">
         <bool>true</bool>
        </property>
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
       </widget>
       <widget class="MarkdownSpellTextEdit" name="editor">
        <property name="enabled">
@@ -100,7 +102,6 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="actionContents"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -109,12 +110,22 @@
     <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
+    <addaction name="separator"/>
+    <addaction name="actionInsert"/>
+    <addaction name="actionDelete"/>
    </widget>
    <widget class="QMenu" name="menuExport">
     <property name="title">
      <string>Export</string>
     </property>
-    <addaction name="actionExportHtml"/>
+    <widget class="QMenu" name="menuHTML">
+     <property name="title">
+      <string>HTML</string>
+     </property>
+     <addaction name="actionExportHtmlWhite"/>
+     <addaction name="actionExportHtmlSlate"/>
+    </widget>
+    <addaction name="menuHTML"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -198,11 +209,6 @@
     <string>Ctrl+V</string>
    </property>
   </action>
-  <action name="actionExportHtml">
-   <property name="text">
-    <string>HTML</string>
-   </property>
-  </action>
   <action name="actionPrint">
    <property name="text">
     <string>Print...</string>
@@ -211,6 +217,35 @@
   <action name="actionPreview">
    <property name="text">
     <string>Print Preview...</string>
+   </property>
+  </action>
+  <action name="actionInsert">
+   <property name="text">
+    <string>Insert</string>
+   </property>
+   <property name="shortcut">
+    <string>Ins</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionExportHtmlSlate">
+   <property name="text">
+    <string>Slate</string>
+   </property>
+  </action>
+  <action name="actionExportHtmlWhite">
+   <property name="text">
+    <string>White</string>
    </property>
   </action>
  </widget>
