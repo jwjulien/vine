@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vine"
-version = "0.1.0"
+version = "0.2.0"
 description = "Markdown tree-style editor."
 authors = ["Jared Julien <jared.julien@nexteer.com>"]
 license = "MIT"
