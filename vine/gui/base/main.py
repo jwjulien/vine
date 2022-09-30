@@ -16,12 +16,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QHeaderView,
-    QMainWindow, QMenu, QMenuBar, QSizePolicy,
-    QSplitter, QStatusBar, QTreeWidget, QTreeWidgetItem,
+from PySide6.QtWidgets import (QApplication, QMainWindow, QMenu, QMenuBar,
+    QSizePolicy, QStatusBar, QTabWidget, QVBoxLayout,
     QWidget)
-
-from vine.gui.widgets.editor import MarkdownSpellTextEdit
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -69,45 +66,19 @@ class Ui_MainWindow(object):
         self.actionHeadingsBars = QAction(MainWindow)
         self.actionHeadingsBars.setObjectName(u"actionHeadingsBars")
         self.actionHeadingsBars.setCheckable(True)
+        self.actionCloseTab = QAction(MainWindow)
+        self.actionCloseTab.setObjectName(u"actionCloseTab")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.horizontalLayout = QHBoxLayout(self.centralwidget)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.splitter = QSplitter(self.centralwidget)
-        self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Horizontal)
-        self.tree = QTreeWidget(self.splitter)
-        __qtreewidgetitem = QTreeWidgetItem()
-        __qtreewidgetitem.setText(0, u"1");
-        self.tree.setHeaderItem(__qtreewidgetitem)
-        self.tree.setObjectName(u"tree")
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(2)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tree.sizePolicy().hasHeightForWidth())
-        self.tree.setSizePolicy(sizePolicy)
-        self.tree.setDragEnabled(True)
-        self.tree.setDragDropMode(QAbstractItemView.InternalMove)
-        self.tree.setDefaultDropAction(Qt.MoveAction)
-        self.tree.setAlternatingRowColors(True)
-        self.tree.setIndentation(15)
-        self.tree.setHeaderHidden(True)
-        self.splitter.addWidget(self.tree)
-        self.editor = MarkdownSpellTextEdit(self.splitter)
-        self.editor.setObjectName(u"editor")
-        self.editor.setEnabled(False)
-        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy1.setHorizontalStretch(5)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.editor.sizePolicy().hasHeightForWidth())
-        self.editor.setSizePolicy(sizePolicy1)
-        font = QFont()
-        font.setFamilies([u"Consolas"])
-        font.setPointSize(10)
-        self.editor.setFont(font)
-        self.splitter.addWidget(self.editor)
+        self.verticalLayout = QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabs = QTabWidget(self.centralwidget)
+        self.tabs.setObjectName(u"tabs")
+        self.tabs.setTabsClosable(True)
+        self.tabs.setMovable(True)
 
-        self.horizontalLayout.addWidget(self.splitter)
+        self.verticalLayout.addWidget(self.tabs)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -147,6 +118,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionPrint)
         self.menuFile.addAction(self.actionPreview)
         self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionCloseTab)
         self.menuFile.addAction(self.actionExit)
         self.menuHelp.addAction(self.actionAbout)
         self.menuEdit.addAction(self.actionCut)
@@ -164,12 +136,18 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.tabs.setCurrentIndex(-1)
+
+
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.actionNew.setText(QCoreApplication.translate("MainWindow", u"New", None))
+#if QT_CONFIG(shortcut)
+        self.actionNew.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+N", None))
+#endif // QT_CONFIG(shortcut)
         self.actionOpen.setText(QCoreApplication.translate("MainWindow", u"Open...", None))
 #if QT_CONFIG(shortcut)
         self.actionOpen.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+O", None))
@@ -215,6 +193,10 @@ class Ui_MainWindow(object):
         self.actionExportHtmlWhite.setText(QCoreApplication.translate("MainWindow", u"White", None))
         self.actionHeadingsHashes.setText(QCoreApplication.translate("MainWindow", u"Hashes", None))
         self.actionHeadingsBars.setText(QCoreApplication.translate("MainWindow", u"Bars", None))
+        self.actionCloseTab.setText(QCoreApplication.translate("MainWindow", u"Close Tab", None))
+#if QT_CONFIG(shortcut)
+        self.actionCloseTab.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+W", None))
+#endif // QT_CONFIG(shortcut)
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))

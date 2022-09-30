@@ -14,60 +14,30 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+     <widget class="QTabWidget" name="tabs">
+      <property name="currentIndex">
+       <number>-1</number>
       </property>
-      <widget class="QTreeWidget" name="tree">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>2</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="dragEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::InternalMove</enum>
-       </property>
-       <property name="defaultDropAction">
-        <enum>Qt::MoveAction</enum>
-       </property>
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-       <property name="indentation">
-        <number>15</number>
-       </property>
-       <property name="headerHidden">
-        <bool>true</bool>
-       </property>
-       <column>
-        <property name="text">
-         <string notr="true">1</string>
-        </property>
-       </column>
-      </widget>
-      <widget class="MarkdownSpellTextEdit" name="editor">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>5</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <family>Consolas</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-      </widget>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
    </layout>
@@ -95,6 +65,7 @@
     <addaction name="actionPrint"/>
     <addaction name="actionPreview"/>
     <addaction name="separator"/>
+    <addaction name="actionCloseTab"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -150,6 +121,9 @@
   <action name="actionNew">
    <property name="text">
     <string>New</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="actionOpen">
@@ -278,14 +252,15 @@
     <string>Bars</string>
    </property>
   </action>
+  <action name="actionCloseTab">
+   <property name="text">
+    <string>Close Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>MarkdownSpellTextEdit</class>
-   <extends>QTextEdit</extends>
-   <header>vine.gui.widgets.editor.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
